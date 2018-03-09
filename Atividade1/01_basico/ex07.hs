@@ -19,15 +19,15 @@ f x = (x1, x2)
     where
         x1 =  tmp 
         x2 =  tmp  * (-1)
-        tmp = sqrt (1 - cos(x)) / sqrt 2 
+        tmp = sqrt (1 - cos(x) / 2 )
 
 
-g :: (Floating a, Fractional b) => a -> a -> b
-g x y = sqrt x / sqrt y
+g :: (Floating a, Fractional b) => b  -> a
+g x = x /  2
 
 main :: IO()
 main = do
     print(f (pi/2))
     print(f 1.0 )
     print(f 0.5)
-    print(g 4 2)
+	print(g 4 2)
