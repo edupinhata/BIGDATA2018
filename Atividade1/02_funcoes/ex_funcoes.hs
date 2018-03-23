@@ -94,6 +94,7 @@ triPasc _ 0 = 1
 triPasc 0 _ = 1
 triPasc i j = triPasc (i-1) j + triPasc i (j-1)
 
+--outra forma
 triPasc2 :: Int -> Int -> Int
 triPasc2 m n = n1 `div` n2
     where 
