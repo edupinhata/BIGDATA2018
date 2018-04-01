@@ -1,14 +1,16 @@
 {-|
-Module        :
+Module        : Atividade 1
 Description   :
 Copyright     : (c) Eduardo Pinhata 
 License       : GPL-3
 Maintainer    : edupinhata@gmail.com
 
-Crie um alista de anos bissextos desde o ano 1 até o atual.
+    01. básico da lista de exercícios de Inteligência
+    na Web e BigData
 -}
 
 module Main where
+import Data.Char
 
 -- Exercicio 8: Crie uma lista de anos bissextos desde o ano 1 até o atual
 ------------------------------------------------------------------------
@@ -58,10 +60,18 @@ lengthDoubleList l = lenl
 
 
 -- Exercício 11: Crie um concatenador de strings que concatena duas strings separadas por espaço
-
+concatString :: [Char] -> [Char]
+concatString a = concatString' [] a
+    where
+        concatString' l (' ':x) = l++x
+        concatString' l (y:x) = concatString' (l++[y]) x 
 
 -- Exercício 12: Dada a string "0123456789", crie uma lista com os dígitos em formato Integer
+strToInt :: [Char] -> [Int]
+strToInt x = addCharToString [] x
+    where
+        addCharToString l [] = l
+        addCharToString l (y:x) = addCharToString (l++[digitToInt y]) x 
 
 
-main = do
-  print( ehBissexto 2006 )
+
