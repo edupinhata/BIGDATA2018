@@ -68,19 +68,13 @@ factorial :: Int -> Int
 factorial n = factorial' n 1
 factorial' 1 m = m
 factorial' n m = factorial' (n-1) (m*n)
+
 binomial :: Int -> Int -> Int
 binomial n k = n1 `div` n2 
     where 
         n1 = factorial n
         n2 = (factorial k) * (factorial(n-k))
 
-{- A divisão não está funcionando
-binomial :: Int -> Int -> Int
-binomial n k = (n1 n) / (n2 n k)
-  where
-    n1 x = fromIntegral $ factorial x 
-    n2 x y = fromIntegral $ (factorial y) * (factorial (x-y)) 
--}
 
 -- outra forma
 choose :: Int -> Int -> Int
