@@ -16,8 +16,24 @@ Programação funcional tem algumas propriedades, são estas:
 Essas propriedades oferecem algumas vantagens, e uma delas é o paralelismo. Como nenhuma função altera dados, ou afeta o funcionamento de oturas funções, é possível realizar uma funções em paralelo sem preocupações de alterações indevidas. 
 
 
-Programação funcional se baseia na avaliação de funçoes ao invés da execução de instruções. Isso permite que uma função seja avaliada apenas quando for realmente necessário. Quando lidamos com uma grande quantidade de dados, queremos evitar realizar processamentos desnecessários que podem aumentar muito o tempo de resolução de um problema. 
-A 
+Programação funcional se baseia na avaliação de funções ao invés da execução de instruções. Isso permite que uma função seja avaliada apenas quando for realmente necessário. Quando lidamos com uma grande quantidade de dados, queremos evitar realizar processamentos desnecessários que podem aumentar muito o tempo de resolução de um problema. 
+
+É necesário também que a linguagem utilizada tenha suporte para processamento paralelo. O paradigma funcional facilita o uso de processamento paraleo, mas a linguagem necessita ter suporte para tal.
+
+
+##############################################3
+
+O paradigma funcional é baseado em alguns conceitos, entre eles:
+
+- Imutabilidade: nenhuma variável, estrutura de dados, função muda após ter sido criada. Caso seja necessário alterá-las, uma nova variábel, estrutura de dados, funçãos, etc é criada.
+- Uma mesma função com os mesmos argumentos, produzem o mesmo resultado: como não há mutabilidade das funções, variáveis, estruturas, uma função não pode produzir resultados diferentes dadas as mesmas entradas.
+- Ausência de efeitos colaterais: Isto está associado à imutabilidade. Como nada é alterado, funções não geram efeitos como por exemplo, alterar variáveis globais, que poderiam gerar resultados diferentes.
+
+No contexto de algoritmos distribuídos para trabalhar com grande massa de dados, essas três propriedades garantem que quando uma função é executada sobre um conjunto de dados, este não será alterado. Desta forma, outra função pode ser aplicada ao mesmo conjunto de dados paralelamente sem a preocupação de gerar inconsistência. Uma mesma função pode até ser aplicada a diversas porções do mesmo conjunto de dados. Essas propriedades fazem com que a paralelização em programação
+funcional seja algo natural. 
+
+Outra vantagem é que a programação funcional avalia funções ao invès de executar instruções. Isto associado à avaliação preguiçosa, permite que muito processamento seja economizado. Isto feito a uma grande quantidade de dados pode economizar muito tempo de processamento. Um exemplo seria realizar uma grande quantidade de processamento para chegar em um valor e por fim multiplicá-lo por zero. Em uma avaliação preguiçosa, é possível não realizar a grande quantidade de
+processamento.
 
 
 
