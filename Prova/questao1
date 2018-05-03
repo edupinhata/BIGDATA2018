@@ -1,0 +1,10 @@
+Descreva em uma página os conceitos de programação funcional necessários para o desenvolvimento de algoritmos distribuídos para trabalhar com grande massa de dados.
+
+"O paradigma funcional possui um alto nível de abstração. Suas funções computam um resultado que depende apenas dos valores das entradas. Os programas são funções que descrevem uma relação explícita e precisa entre as entradas e saídas.
+
+Algumas das vantagens do paradigma funcional são:
+- Construção eficiente de programas
+- Prova de propriedades:
+- Transformação de programas
+- Concorrência explorada de forma natural: como se percebe, no mundo real, a ideia de causa-eeito traduz que dada uma entrada, esta segue de uma saída. Contudo, implementações de problemas interessantes do mundo rela tem embutido as noções de não-determinismo e paralelismo. Esses fats levam a uma concorrência natural da necessidade dessas programas."  (Sá. C.C., Silva, M. F, HASKELL: UMA ABORDAGEM PRÁTICA.)
+
