@@ -40,6 +40,19 @@ getNeigh n = snd n
 getNode :: NeighSolEl -> Integer
 getNode n = fst n
 
+
+-- getNeighSolEl from Index
+getNeighSolEl :: Integer -> Dictionary -> NeighSolEl
+getNeighSolEl x dict = ( x , dict Map.! x )
+
+
+-- get tuple src
+getTupleSrc :: (Edge, [Integer]) -> Integer
+getTupleSrc t = fst $ fst t
+
+getTupleDst :: (Edge, [Integer]) -> Integer
+getTupleDst t = snd $ fst t
+
 -- Format content read from file
 parseFile :: String ->  [Edge]
 parseFile file = toEdges $ map parseLine (lines file)
@@ -69,7 +82,7 @@ getAllNeigh rawData = mapReduceByKey separeSrcNode appendDst rawData
 
 
 getAllTupleSol :: ChunksOf [Edge] -> TupleSol
-getAllTupleSol rawData = map (\x -> (x,[])) $ foldl (\x y -> x++y) [] rawData	
+getAllTupleSol rawData = map (\x -> (x,[-1])) $ foldl (\x y -> x++y) [] rawData	
 
 
 -- Remove elements with Neighborhood bigger than k 
@@ -78,10 +91,12 @@ filterK neigh k = filter (\x -> length (snd x) >= k) neigh
 
 
 -- Implementation of symbol
+-- NeighSolEl is Bigger than other NeighSolEl
 (<.) :: NeighSolEl -> NeighSolEl -> Bool
 (<.) x y 
 	| (P.length (getNeigh x) <= P.length (getNeigh y)) && (getNode x) < (getNode y) = True
 	| otherwise    = False
+
 
 
 -- Get all the NeighSol from a neighborhood of a neighSol
@@ -93,11 +108,11 @@ getNeighSol n dict = map toNeighSol (getNeigh n)
 
 -- Filter only the elements from a NeighSol that are
 -- bigger than neigh
-myFilter :: NeighSolEl -> NeighSol -> [Integer] -> NeighSolEl
-myFilter neigh [] l = (getNode neigh, l)
-myFilter neigh (n:neighsList) l
-	| neigh <. n = myFilter neigh neighsList (l++[(getNode n)])
-	| otherwise  = myFilter neigh neighsList l
+filterHighNeigh :: NeighSolEl -> NeighSol -> [Integer] -> NeighSolEl
+filterHighNeigh neigh [] l = (getNode neigh, l)
+filterHighNeigh neigh (n:neighsList) l
+	| neigh <. n = filterHighNeigh neigh neighsList (l++[(getNode n)])
+	| otherwise  = filterHighNeigh neigh neighsList l
 
 
 -- Find High-Neighbor of an node
@@ -109,6 +124,28 @@ getHighNeigh neigh dict = myFilter neigh (getNeighSol neigh dict) []
 -- get All High-Neighbor from the graph
 getAllHighNeigh :: NeighSol -> Dictionary -> NeighSol
 getAllHighNeigh neighs dict = map (\x -> getHighNeigh x dict) neighs
+
+
+flatmap :: [[a]] -> [a]
+flatmap a = flatmap' a []
+	where
+		flatmap' [x:[]] l = l++[x]
+		flatmap' [x:[y]] l = flatmap' [[y]] l++[x] 
+		flatmap' _ l = l
+
+flatmap2 :: [[a]] -> [a]
+flatmap2 a = map (!!0) a
+
+-- transform NeighSol to TupleSol where the tuples are the 
+-- cartesian product of the neighors 
+neighSolToTupleSol :: NeighSol -> Dictionary -> TupleSol
+neighSolToTupleSol n dict = filter cond $ foldl concat [] $ map transform n	
+	where
+		transform x = [((i,j), [(getNode x)]) | i <- (getNeigh x), j <- (getNeigh x)]
+		concat x y = x++y 	
+		cond x  = (getNeighSolEl (src x) dict) <. (getNeighSolEl (dst x) dict)
+		src = getTupleSrc
+		dst = getTupleDst
 
 
 -- Create dictionary 
@@ -126,14 +163,18 @@ main = do
 		dataset    = parseFile file
 		dataChunks = chunksOf numCks dataset
 		dict	   = makeDict dataChunks
-		tSol	   = getAllTupleSol dataChunks
+		tuples	   = getAllTupleSol dataChunks
 		neighs	   = getAllNeigh dataChunks	
 		highNeigh  = getAllHighNeigh neighs dict
+		tuplesHighNeigh = neighSolToTupleSol highNeigh dict
+		
+
 		neighsLen  = map (\x -> (fst x, length (snd x) ) ) neighs
 		highNeighLen = map (\x -> (fst x, length (snd x) ) ) highNeigh
 
-	print ( take 7 tSol )
+	print ( take 7 tuples )
 	print ( take 5 neighs ) 
 	print ( take 5 highNeigh )
+	print ( take 5 tuplesHighNeigh)
 	print ( take 5 neighsLen )
 	print ( take 5 highNeighLen )
