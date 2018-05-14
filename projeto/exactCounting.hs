@@ -152,8 +152,9 @@ makeDict dataChunks = Map.fromList (getAllNeigh dataChunks)
 main :: IO()
 main = do
 	--file <- readFile "0.edges"
-	file <- readFile "3980.edges"
-	let
+    file <- readFile "test.edges"
+    --file <- readFile "3980.edges"
+    let
 		dataset    = parseFile file
 		dataChunks = chunksOf numCks dataset
 		dict	   = makeDict dataChunks
@@ -176,7 +177,7 @@ main = do
 		-- neighsLen  = map (\x -> (fst x, length (snd x) ) ) neighs
 		-- highNeighLen = map (\x -> (fst x, length (snd x) ) ) highNeigh
 
-	print ( take 7 tuples )
+    print ( take 7 tuples )
 	print ( take 5 neighs ) 
 	print ( take 5 highNeigh )
 	print ( take 5 tuplesHighNeigh)
