@@ -117,24 +117,18 @@ filterHighNeigh neigh (n:neighsList) l
 
 -- Find High-Neighbor of an node
 getHighNeigh :: NeighSolEl -> Dictionary -> NeighSolEl
-getHighNeigh neigh dict = myFilter neigh (getNeighSol neigh dict) [] 
-		
+getHighNeigh neigh dict = filterHighNeigh neigh (getNeighSol neigh dict) [] 
 		
 	
 -- get All High-Neighbor from the graph
 getAllHighNeigh :: NeighSol -> Dictionary -> NeighSol
 getAllHighNeigh neighs dict = map (\x -> getHighNeigh x dict) neighs
 
+-- make a map in a list of list and concatenate 
+-- the elements into a single list
+flatmap :: ([a] -> [a] -> [a]) -> [[a]] -> [a]
+flatmap f x = foldl f [] x 
 
-flatmap :: [[a]] -> [a]
-flatmap a = flatmap' a []
-	where
-		flatmap' [x:[]] l = l++[x]
-		flatmap' [x:[y]] l = flatmap' [[y]] l++[x] 
-		flatmap' _ l = l
-
-flatmap2 :: [[a]] -> [a]
-flatmap2 a = map (!!0) a
 
 -- transform NeighSol to TupleSol where the tuples are the 
 -- cartesian product of the neighors 
@@ -167,14 +161,28 @@ main = do
 		neighs	   = getAllNeigh dataChunks	
 		highNeigh  = getAllHighNeigh neighs dict
 		tuplesHighNeigh = neighSolToTupleSol highNeigh dict
-		
+		-- group the two different dataset 
+		dataset'   = flatmap (\x y -> x++y) $ groupByKey (tuples ++ tuplesHighNeigh)
+		-- remove the elements with -1
+		dataset''  =  map (\x -> (fst x, filter (\y -> y /= -1) (snd x)) ) dataset'
+		-- make the map to change from ((x,y),[u1,...,un]) to (u1, (x,y)), (u2, (x,y))...
+		dataset''' = flatmap (\x y -> x++y) 
+						$ map (\x -> [(i, [fst x]) | i <- (snd x)] ) dataset''  	
+		-- group the elements By key	
+		dataset'''' = map (\x -> foldl (\y z -> (fst y, (snd y)++(snd z))) [] x )
+							$  groupByKey dataset'''	
 
-		neighsLen  = map (\x -> (fst x, length (snd x) ) ) neighs
-		highNeighLen = map (\x -> (fst x, length (snd x) ) ) highNeigh
+
+		-- neighsLen  = map (\x -> (fst x, length (snd x) ) ) neighs
+		-- highNeighLen = map (\x -> (fst x, length (snd x) ) ) highNeigh
 
 	print ( take 7 tuples )
 	print ( take 5 neighs ) 
 	print ( take 5 highNeigh )
 	print ( take 5 tuplesHighNeigh)
-	print ( take 5 neighsLen )
-	print ( take 5 highNeighLen )
+	print ( take 10 dataset' )
+	print ( take 10 dataset'' )
+	print ( take 10 dataset''' )
+	print ( take 10 dataset'''' )
+
+
