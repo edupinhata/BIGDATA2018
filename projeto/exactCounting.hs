@@ -169,7 +169,7 @@ main = do
 		dataset''' = flatmap (\x y -> x++y) 
 						$ map (\x -> [(i, [fst x]) | i <- (snd x)] ) dataset''  	
 		-- group the elements By key	
-		dataset'''' = map (\x -> foldl (\y z -> (fst y, (snd y)++(snd z))) [] x )
+		dataset'''' = map (\x -> foldl (\y z -> (fst z, (snd y)++(snd z))) (1,[]) x )
 							$  groupByKey dataset'''	
 
 
