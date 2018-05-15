@@ -29,7 +29,7 @@ type TupleSol   = [(Edge, [Integer])]
 type NeighSolEl = (Integer, [Integer])
 type NeighSol   = [NeighSolEl]
 type Dictionary = Map.Map Integer [Integer]
-
+type DictionaryT = Map.Map Edge [Integer]
 
 -- get neighbors of a NeighSolEl
 getNeigh :: NeighSolEl -> [Integer]
@@ -98,8 +98,8 @@ filterK neigh k = filter (\x -> length (snd x) >= k-1) neigh
 -- NeighSolEl is Bigger than other NeighSolEl
 (<.) :: NeighSolEl -> NeighSolEl -> Bool
 (<.) x y 
-	| (P.length (getNeigh x) <= P.length (getNeigh y)) && (getNode x) < (getNode y) = True
-	-- | (getNode x) < (getNode y) = True
+	-- | (P.length (getNeigh x) <= P.length (getNeigh y)) && (getNode x) < (getNode y) = True
+	| (getNode x) < (getNode y) = True
 	| otherwise    = False
 
 
@@ -136,19 +136,29 @@ flatmap f x = foldl f [] x
 
 -- transform NeighSol to TupleSol where the tuples are the 
 -- cartesian product of the neighors 
-neighSolToTupleSol :: NeighSol -> Dictionary -> TupleSol
-neighSolToTupleSol n dict = filter cond $ foldl concat [] $ map transform n	
+neighSolToTupleSol :: NeighSol -> Dictionary -> DictionaryT -> TupleSol
+neighSolToTupleSol n dict dictT = filter cond $ foldl concat [] $ map transform n	
 	where
-		transform x = [((i,j), [(getNode x)]) | i <- (getNeigh x), j <- (getNeigh x)]
+		transform x = [((i,j), [(getNode x)]) | i <- (getNeigh x), j <- (getNeigh x), isEdge (i,j) dictT ]
 		concat x y = x++y	
 		cond x  = (getNeighSolEl dict (src x)) <. (getNeighSolEl dict (dst x))
 		src = getTupleSrc
 		dst = getTupleDst
 
 
--- Create dictionary 
+-- Create dictionary of edges
 makeDict :: ChunksOf [Edge] -> Map.Map Integer [Integer]
 makeDict dataChunks = Map.fromList (getAllNeigh dataChunks)
+
+
+-- Create dictionary of tuples
+makeDictTuple :: ChunksOf [Edge] -> Dictionary -> Map.Map Edge [Integer]
+makeDictTuple dataChunks dict = Map.fromList (getAllTupleSol dataChunks dict)
+
+
+-- verify if tuple is an edge
+isEdge :: Edge -> DictionaryT -> Bool  
+isEdge e dict = Map.member e dict
 
 
 -- color line
@@ -161,18 +171,19 @@ colorLine s = "\x1b[31m" ++ s ++ "\x1b[0m"
 
 main :: IO()
 main = do
-	--file <- readFile "0.edges"
-	file <- readFile "test.edges"
-	--file <- readFile "3980.edges"
+	file <- readFile "0.edges"
+	-- file <- readFile "test.edges"
+	-- file <- readFile "3980.edges"
 	let
 		dataset		= parseFile file
 		dataChunks	= chunksOf numCks dataset
 		dict		= makeDict dataChunks
+		dictT		= makeDictTuple dataChunks dict
 		tuples		= getAllTupleSol dataChunks dict
 		neighs		= getAllNeigh dataChunks	
 		highNeigh		= getAllHighNeigh neighs dict
 		filtHighNeigh	= filterK highNeigh 3
-		tuplesHighNeigh = neighSolToTupleSol filtHighNeigh dict
+		tuplesHighNeigh = neighSolToTupleSol filtHighNeigh dict dictT
 		-- group the two different dataset 
 		dataset'   = flatmap (\x y -> x++y) $ groupByKey (tuples ++ tuplesHighNeigh)
 		-- remove the elements with -1
@@ -205,5 +216,4 @@ main = do
 	print ( dataset''' )
 	putStrLn $ colorLine  "\n==== group elements by key"
 	print ( dataset'''' )
-
 
