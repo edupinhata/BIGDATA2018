@@ -42,8 +42,8 @@ getNode n = fst n
 
 
 -- getNeighSolEl from Index
-getNeighSolEl :: Integer -> Dictionary -> NeighSolEl
-getNeighSolEl x dict = ( x , dict Map.! x )
+getNeighSolEl ::  Dictionary -> Integer -> NeighSolEl
+getNeighSolEl dict x = ( x , dict Map.! x )
 
 
 -- get tuple src
@@ -81,13 +81,17 @@ getAllNeigh rawData = mapReduceByKey separeSrcNode appendDst rawData
 		appendDst x y = x++y
 
 
-getAllTupleSol :: ChunksOf [Edge] -> TupleSol
-getAllTupleSol rawData = map (\x -> (x,[-1])) $ foldl (\x y -> x++y) [] rawData	
+getAllTupleSol :: ChunksOf [Edge]-> Dictionary -> TupleSol
+getAllTupleSol rawData dict = filter (\x -> (first x) <. (second x)) 
+				 $ map (\x -> (x,[-1])) $ foldl (\x y -> x++y) [] rawData	
+	where 
+		first a = getNeighSolEl dict $ getTupleSrc a
+		second a = getNeighSolEl dict $ getTupleDst a 
 
 
 -- Remove elements with Neighborhood bigger than k 
 filterK :: NeighSol -> Int -> NeighSol
-filterK neigh k = filter (\x -> length (snd x) >= k) neigh
+filterK neigh k = filter (\x -> length (snd x) >= k-1) neigh
 
 
 -- Implementation of symbol
@@ -95,11 +99,11 @@ filterK neigh k = filter (\x -> length (snd x) >= k) neigh
 (<.) :: NeighSolEl -> NeighSolEl -> Bool
 (<.) x y 
 	| (P.length (getNeigh x) <= P.length (getNeigh y)) && (getNode x) < (getNode y) = True
+	-- | (getNode x) < (getNode y) = True
 	| otherwise    = False
 
 
-
--- Get all the NeighSol from a neighborhood of a neighSol
+-- Get all the NeighSol from a neighborhood of a neighSolEl
 getNeighSol :: NeighSolEl -> Dictionary -> NeighSol
 getNeighSol n dict = map toNeighSol (getNeigh n)
 	where
@@ -136,8 +140,8 @@ neighSolToTupleSol :: NeighSol -> Dictionary -> TupleSol
 neighSolToTupleSol n dict = filter cond $ foldl concat [] $ map transform n	
 	where
 		transform x = [((i,j), [(getNode x)]) | i <- (getNeigh x), j <- (getNeigh x)]
-		concat x y = x++y 	
-		cond x  = (getNeighSolEl (src x) dict) <. (getNeighSolEl (dst x) dict)
+		concat x y = x++y	
+		cond x  = (getNeighSolEl dict (src x)) <. (getNeighSolEl dict (dst x))
 		src = getTupleSrc
 		dst = getTupleDst
 
@@ -146,44 +150,60 @@ neighSolToTupleSol n dict = filter cond $ foldl concat [] $ map transform n
 makeDict :: ChunksOf [Edge] -> Map.Map Integer [Integer]
 makeDict dataChunks = Map.fromList (getAllNeigh dataChunks)
 
+
+-- color line
+colorLine :: String -> String
+colorLine s = "\x1b[31m" ++ s ++ "\x1b[0m"
+
+
 -- Get the High-Neighborhood for each node
 --getHighNeigh :: ChunksOf [Node] -> [(Integer, [Integer])]
 
 main :: IO()
 main = do
 	--file <- readFile "0.edges"
-    file <- readFile "test.edges"
-    --file <- readFile "3980.edges"
-    let
-		dataset    = parseFile file
-		dataChunks = chunksOf numCks dataset
-		dict	   = makeDict dataChunks
-		tuples	   = getAllTupleSol dataChunks
-		neighs	   = getAllNeigh dataChunks	
-		highNeigh  = getAllHighNeigh neighs dict
-		tuplesHighNeigh = neighSolToTupleSol highNeigh dict
+	file <- readFile "test.edges"
+	--file <- readFile "3980.edges"
+	let
+		dataset		= parseFile file
+		dataChunks	= chunksOf numCks dataset
+		dict		= makeDict dataChunks
+		tuples		= getAllTupleSol dataChunks dict
+		neighs		= getAllNeigh dataChunks	
+		highNeigh		= getAllHighNeigh neighs dict
+		filtHighNeigh	= filterK highNeigh 3
+		tuplesHighNeigh = neighSolToTupleSol filtHighNeigh dict
 		-- group the two different dataset 
 		dataset'   = flatmap (\x y -> x++y) $ groupByKey (tuples ++ tuplesHighNeigh)
 		-- remove the elements with -1
 		dataset''  =  map (\x -> (fst x, filter (\y -> y /= -1) (snd x)) ) dataset'
 		-- make the map to change from ((x,y),[u1,...,un]) to (u1, (x,y)), (u2, (x,y))...
 		dataset''' = flatmap (\x y -> x++y) 
-						$ map (\x -> [(i, [fst x]) | i <- (snd x)] ) dataset''  	
+			$ map (\x -> [(i, [fst x]) | i <- (snd x)] ) dataset''		
 		-- group the elements By key	
 		dataset'''' = map (\x -> foldl (\y z -> (fst z, (snd y)++(snd z))) (1,[]) x )
-							$  groupByKey dataset'''	
+			$  groupByKey dataset'''	
 
 
 		-- neighsLen  = map (\x -> (fst x, length (snd x) ) ) neighs
 		-- highNeighLen = map (\x -> (fst x, length (snd x) ) ) highNeigh
 
-    print ( take 7 tuples )
-	print ( take 5 neighs ) 
-	print ( take 5 highNeigh )
-	print ( take 5 tuplesHighNeigh)
-	print ( take 10 dataset' )
-	print ( take 10 dataset'' )
-	print ( take 10 dataset''' )
-	print ( take 10 dataset'''' )
+	print ( tuples )
+	putStrLn $ colorLine "\n==== Neigh:" 
+	print (  neighs ) 
+	putStrLn $ colorLine "\n=== HighNeigh"
+	print ( highNeigh )
+	putStrLn $ colorLine "\n=== Filtered HighNeigh"
+	print ( filtHighNeigh )
+	putStrLn $ colorLine "\n==== tuplesHighNeigh"
+	print ( tuplesHighNeigh)
+	putStrLn $ colorLine "\n==== group different dataset"
+	print ( dataset' )
+	putStrLn $ colorLine "\n==== remove elements with -1"
+	print ( dataset'' )
+	putStrLn $ colorLine "\n==== make from ((x,y), [u1,...,un]) to (u1, (x,y)), (u2, (x,y))..."
+	print ( dataset''' )
+	putStrLn $ colorLine  "\n==== group elements by key"
+	print ( dataset'''' )
 
 
