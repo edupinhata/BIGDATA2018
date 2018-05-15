@@ -55,22 +55,22 @@ getTupleDst t = snd $ fst t
 
 -- Format content read from file
 parseFile :: String ->  [Edge]
-parseFile file = toEdges $ map parseLine (lines file)
+parseFile file = toEdges $ parmap parseLine (lines file)
 	where
-		parseLine l = map toInteger (words l)
+		parseLine l = parmap toInteger (words l)
 		toInteger w = do
 						let maybeW = readMaybe w :: Maybe Integer
 						case maybeW of
 							Just w' -> w'
 							Nothing -> -1
-		toEdges n = map (\x -> (x!!0, x!!1)) n 
+		toEdges n = parmap (\x -> (x!!0, x!!1)) n 
 
 
 -- Transform Nodes to Solution
 initSolution :: ChunksOf Edge -> TupleSol
 initSolution rawData = prepare rawData
 	where 
-		prepare x = map (\x -> (x,[])) rawData
+		prepare x = parmap (\x -> (x,[])) rawData
 
 
 -- Get Neighborhood of each node
@@ -83,7 +83,7 @@ getAllNeigh rawData = mapReduceByKey separeSrcNode appendDst rawData
 
 getAllTupleSol :: ChunksOf [Edge]-> Dictionary -> TupleSol
 getAllTupleSol rawData dict = filter (\x -> (first x) <. (second x)) 
-				 $ map (\x -> (x,[-1])) $ foldl (\x y -> x++y) [] rawData	
+				 $ parmap (\x -> (x,[-1])) $ foldl (\x y -> x++y) [] rawData	
 	where 
 		first a = getNeighSolEl dict $ getTupleSrc a
 		second a = getNeighSolEl dict $ getTupleDst a 
@@ -105,7 +105,7 @@ filterK neigh k = filter (\x -> length (snd x) >= k-1) neigh
 
 -- Get all the NeighSol from a neighborhood of a neighSolEl
 getNeighSol :: NeighSolEl -> Dictionary -> NeighSol
-getNeighSol n dict = map toNeighSol (getNeigh n)
+getNeighSol n dict = parmap toNeighSol (getNeigh n)
 	where
 		toNeighSol x = (x, dict Map.! x) 
 
@@ -126,18 +126,18 @@ getHighNeigh neigh dict = filterHighNeigh neigh (getNeighSol neigh dict) []
 	
 -- get All High-Neighbor from the graph
 getAllHighNeigh :: NeighSol -> Dictionary -> NeighSol
-getAllHighNeigh neighs dict = map (\x -> getHighNeigh x dict) neighs
+getAllHighNeigh neighs dict = parmap (\x -> getHighNeigh x dict) neighs
 
 -- make a map in a list of list and concatenate 
 -- the elements into a single list
 flatmap :: ([a] -> [a] -> [a]) -> [[a]] -> [a]
 flatmap f x = foldl f [] x 
-
+--flatmap f x = mapReduce id f (chunksOf numCks x)
 
 -- transform NeighSol to TupleSol where the tuples are the 
 -- cartesian product of the neighors 
 neighSolToTupleSol :: NeighSol -> Dictionary -> DictionaryT -> TupleSol
-neighSolToTupleSol n dict dictT = filter cond $ foldl concat [] $ map transform n	
+neighSolToTupleSol n dict dictT = filter cond $ foldl concat [] $ parmap transform n	
 	where
 		transform x = [((i,j), [(getNode x)]) | i <- (getNeigh x), j <- (getNeigh x), isEdge (i,j) dictT ]
 		concat x y = x++y	
@@ -187,33 +187,33 @@ main = do
 		-- group the two different dataset 
 		dataset'   = flatmap (\x y -> x++y) $ groupByKey (tuples ++ tuplesHighNeigh)
 		-- remove the elements with -1
-		dataset''  =  map (\x -> (fst x, filter (\y -> y /= -1) (snd x)) ) dataset'
+		dataset''  =  parmap (\x -> (fst x, filter (\y -> y /= -1) (snd x)) ) dataset'
 		-- make the map to change from ((x,y),[u1,...,un]) to (u1, (x,y)), (u2, (x,y))...
 		dataset''' = flatmap (\x y -> x++y) 
-			$ map (\x -> [(i, [fst x]) | i <- (snd x)] ) dataset''		
+			$ parmap (\x -> [(i, [fst x]) | i <- (snd x)] ) dataset''		
 		-- group the elements By key	
-		dataset'''' = map (\x -> foldl (\y z -> (fst z, (snd y)++(snd z))) (1,[]) x )
+		dataset'''' = parmap (\x -> foldl (\y z -> (fst z, (snd y)++(snd z))) (1,[]) x )
 			$  groupByKey dataset'''	
 
 
 		-- neighsLen  = map (\x -> (fst x, length (snd x) ) ) neighs
 		-- highNeighLen = map (\x -> (fst x, length (snd x) ) ) highNeigh
 
-	print ( tuples )
+	--print ( tuples )
 	putStrLn $ colorLine "\n==== Neigh:" 
-	print (  neighs ) 
+	--print (  neighs ) 
 	putStrLn $ colorLine "\n=== HighNeigh"
-	print ( highNeigh )
+	--print ( highNeigh )
 	putStrLn $ colorLine "\n=== Filtered HighNeigh"
-	print ( filtHighNeigh )
+	--print ( filtHighNeigh )
 	putStrLn $ colorLine "\n==== tuplesHighNeigh"
-	print ( tuplesHighNeigh)
+	--print ( tuplesHighNeigh)
 	putStrLn $ colorLine "\n==== group different dataset"
-	print ( dataset' )
+	--print ( dataset' )
 	putStrLn $ colorLine "\n==== remove elements with -1"
-	print ( dataset'' )
+	--print ( dataset'' )
 	putStrLn $ colorLine "\n==== make from ((x,y), [u1,...,un]) to (u1, (x,y)), (u2, (x,y))..."
-	print ( dataset''' )
+	--print ( dataset''' )
 	putStrLn $ colorLine  "\n==== group elements by key"
 	print ( dataset'''' )
 
