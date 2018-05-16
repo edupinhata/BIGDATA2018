@@ -62,6 +62,16 @@ mapReduceByKey f g xs = combine g
   where
     f' xi = combine g $ map f xi
 
+
+mapReduceByKeySeq  :: (NFData k, NFData v, Ord k) 
+                => (a -> (k, v)) -> (v -> v -> v) -> ChunksOf [a] -> [(k, v)]
+mapReduceByKeySeq f g xs = combine g 
+                     $ concat 
+                     $ (map f' xs) 
+  where
+    f' xi = combine g $ map f xi
+
+
 takeOrdered :: (Ord k, NFData k, NFData v) 
             => Int -> (a -> (k, v)) -> ChunksOf [a] -> [(k, v)]    
 takeOrdered k f xs = take k 

@@ -62,7 +62,7 @@ getNeighSolEl dict x = ( x , dict Map.! x )
 
 -- Get Neighborhood of each node
 getAllNeigh :: ChunksOf [Edge] -> NeighSol
-getAllNeigh rawData = mapReduceByKey separeSrcNode appendDst rawData
+getAllNeigh rawData = mapReduceByKeySeq separeSrcNode appendDst rawData
 	where
 		separeSrcNode x = (fst x, [snd x] )
 		appendDst x y = x++y
@@ -116,10 +116,7 @@ colorLine s = "\x1b[31m" ++ s ++ "\x1b[0m"
 -- the elements into a single list
 flatmap :: ([a] -> [a] -> [a]) -> [[a]] -> [a]
 flatmap f x = foldl f [] x 
---flatmap f x = mapReduce id f (chunksOf numCks x)
 
-
--- sequential map and reduce
 
 
 -- ####################################
