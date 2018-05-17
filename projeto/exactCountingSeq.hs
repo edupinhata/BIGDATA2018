@@ -190,9 +190,9 @@ isEdge e dict = Map.member e dict
 
 main :: IO()
 main = do
-    file <- readFile "0.edges"
-    -- file <- readFile "test.edges"
-    -- file <- readFile "3980.edges"
+    file <- readFile "348.edges"
+    -- file <- readFile "686.edges"
+    -- file <- readFile "698.edges"
     let
         dataset     = parseFile file
         dataChunks  = chunksOf numCks dataset

@@ -189,10 +189,9 @@ isEdge e dict = Map.member e dict
 
 main :: IO()
 main = do
-    file <- readFile "1912.edges"
-    -- file <- readFile "0.edges"
-    -- file <- readFile "test.edges"
-    -- file <- readFile "3980.edges"
+    file <- readFile "348.edges"
+    -- file <- readFile "686.edges"
+    -- file <- readFile "698.edges"
     let
         dataset     = parseFile file
         dataChunks  = chunksOf numCks dataset
@@ -212,27 +211,27 @@ main = do
             $ parmap (\x -> [(i, [fst x]) | i <- (snd x)] ) dataset''       
         -- group the elements By key    
         dataset'''' = parmap (\x -> foldl (\y z -> (fst z, (snd y)++(snd z))) (1,[]) x )
-            $  groupByKey dataset'''    
+           $  groupByKey dataset'''    
 
 
         -- neighsLen  = map (\x -> (fst x, length (snd x) ) ) neighs
         -- highNeighLen = map (\x -> (fst x, length (snd x) ) ) highNeigh
 
-    --print ( tuples )
+    print ( tuples )
     putStrLn $ colorLine "\n==== Neigh:" 
-    --print (  neighs ) 
+    print (  neighs ) 
     putStrLn $ colorLine "\n=== HighNeigh"
-    --print ( highNeigh )
+    print ( highNeigh )
     putStrLn $ colorLine "\n=== Filtered HighNeigh"
-    --print ( filtHighNeigh )
+    print ( filtHighNeigh )
     putStrLn $ colorLine "\n==== tuplesHighNeigh"
-    --print ( tuplesHighNeigh)
+    print ( tuplesHighNeigh)
     putStrLn $ colorLine "\n==== group different dataset"
-    --print ( dataset' )
+    print ( dataset' )
     putStrLn $ colorLine "\n==== remove elements with -1"
-    --print ( dataset'' )
+    print ( dataset'' )
     putStrLn $ colorLine "\n==== make from ((x,y), [u1,...,un]) to (u1, (x,y)), (u2, (x,y))..."
-    --print ( dataset''' )
+    print ( dataset''' )
     putStrLn $ colorLine  "\n==== group elements by key"
     print ( dataset'''' )
 
